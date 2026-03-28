@@ -1,2 +1,2 @@
 # RoboBrush
-we are making a robotic brush.
+we are making a robotic hair brush.
