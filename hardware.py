@@ -23,10 +23,7 @@ class Hardware:
             max_pulse_width=2.25/1000
         )
 
-        # -----------------
-        # Buzzer
-        # -----------------
-        self.buzzer = Buzzer(27)
+
 
         # -----------------
         # Buttons
