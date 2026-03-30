@@ -1,6 +1,5 @@
-from hardware import Hardware
-
-hw = Hardware()
-
+from gpiozero import Motor
+import time
+motor = Motor(forward=12, backward=20)
 while True:
-    hw.dc_raise(1)
+    motor.forward()
