@@ -142,6 +142,7 @@ for row in table:
         print(element, end=" ")
     print()
 try:
+    print("Setup")
     setup()
     for i in range(19):
         time_step(i+1)
