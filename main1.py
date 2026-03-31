@@ -141,6 +141,6 @@ for row in table:
     for element in row:
         print(element, end=" ")
     print()
-
+setup()
 for i in range(19):
     time_step(i+1)
