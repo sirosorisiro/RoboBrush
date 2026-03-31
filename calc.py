@@ -10,12 +10,6 @@ T1 = 0.2383
 
 
 def curve_point(t: float) -> tuple[float, float]:
-    """
-    Returns the (x, y) coordinates of the moving point P at parameter t.
-
-    Desmos definition:
-        P = ( 1/(0.15t + 0.023) + 185 ,  50 - 100t )
-    """
     x = 1.0 / (0.15 * t + 0.023) + 185.0
     y = 50.0 - 100.0 * t
     return x, y
