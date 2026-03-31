@@ -1,6 +1,7 @@
 from gpiozero import Motor
 import time
 import threading
+import select
 
 motor = Motor(forward=12, backward=20)
 actuator = Motor(forward=6, backward=5)
@@ -66,8 +67,6 @@ def setup():
                 # Wait for key release (next keypress or small delay)
                 while True:
                     tty.setraw(sys.stdin.fileno())
-                    # Use select to check if another key is available
-                    import select
                     ready, _, _ = select.select([sys.stdin], [], [], 0.05)
                     if ready:
                         break
