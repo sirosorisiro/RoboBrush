@@ -32,7 +32,7 @@ def actuator_step(i):
     time.sleep(abs(table[i][2]/7))
     actuator.stop()
 
-def run_motor2():
+def motor_step():
     if table[i][3] > 0:
         print("m+")
         motor.forward()
@@ -43,8 +43,8 @@ def run_motor2():
     actuator.stop()
 
 # Create threads
-thread1 = threading.Thread(target=run_motor1)
-thread2 = threading.Thread(target=run_motor2)
+thread1 = threading.Thread(target=actuator_step)
+thread2 = threading.Thread(target=motor_step)
 
 # Start threads
 
