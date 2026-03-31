@@ -6,7 +6,7 @@ motor = Motor(forward=12, backward=20)
 actuator = Motor(forward=6, backward=5)
 import calc
 
-C = 10
+C = 5
 length = 0.0
 angle = 0.0
 length_l = 0.0
@@ -135,7 +135,7 @@ def time_step(i):
     
     thread1.join()
     thread2.join()
-    time.sleep(0.1)
+    time.sleep(0.5)
 
 for row in table:
     for element in row:
