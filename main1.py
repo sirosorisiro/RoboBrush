@@ -5,7 +5,7 @@ import threading
 motor = Motor(forward=12, backward=20)
 actuator = Motor(forward=6, backward=5)
 import calc
-
+k = 2/7
 C = 5
 length = 0.0
 angle = 0.0
@@ -31,7 +31,7 @@ def actuator_step(i):
     else:
         print("a-" + str(table[i][2]/7))
         actuator.backward()
-    time.sleep(abs(table[i][2]/7))
+    time.sleep(abs(table[i][2])*k)
     actuator.stop()
 
 def motor_step(i):                  # Fixed: added missing 'i' parameter
