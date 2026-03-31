@@ -1,7 +1,7 @@
 from gpiozero import Motor
 import time
 motor = Motor(forward=12, backward=20)
-actuator = Motor(forward=5, backward=6)
+actuator = Motor(forward=6, backward=5)
 import calc
 C = 1.0
 length = 0.0
