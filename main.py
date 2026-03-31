@@ -35,7 +35,7 @@ def time_step(i):
     else:
         print("m-")
         motor.backward()
-    time.sleep(table[i][2]/7)
+    time.sleep(abs(table[i][2]/7))
     actuator.stop()
     motor.stop()
     
