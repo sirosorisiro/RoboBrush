@@ -38,6 +38,7 @@ def time_step(i):
     time.sleep(abs(table[i][2]/7))
     actuator.stop()
     motor.stop()
+    time.sleep(1)
     
 for row in table:
     for element in row:
