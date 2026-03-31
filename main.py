@@ -1,5 +1,6 @@
 from gpiozero import Motor
 import time
+import threading
 motor = Motor(forward=12, backward=20)
 actuator = Motor(forward=6, backward=5)
 import calc
