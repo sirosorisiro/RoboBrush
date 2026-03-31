@@ -44,6 +44,87 @@ def motor_step(i):                  # Fixed: added missing 'i' parameter
     time.sleep(abs(table[i][3]) * C)
     motor.stop()                    # Fixed: was calling actuator.stop() by mistake
 
+def setup():
+    import sys
+    import tty
+    import termios
+    old_settings = termios.tcgetattr(sys.stdin)
+
+    try:
+        # Set terminal to raw mode so we can read single keypresses
+        tty.setraw(sys.stdin.fileno())
+
+        while True:
+            key = sys.stdin.read(1).lower()
+
+            if key == 'w':
+                # Move cursor up and overwrite line
+                sys.stdout.write('\r' + ' ' * 40 + '\r')
+                sys.stdout.write('Actuator forward...\r\n')
+                sys.stdout.flush()
+                actuator.forward()
+                # Wait for key release (next keypress or small delay)
+                while True:
+                    tty.setraw(sys.stdin.fileno())
+                    # Use select to check if another key is available
+                    import select
+                    ready, _, _ = select.select([sys.stdin], [], [], 0.05)
+                    if ready:
+                        break
+                    # Keep running motor while held
+                actuator.stop()
+
+            elif key == 's':
+                sys.stdout.write('\r' + ' ' * 40 + '\r')
+                sys.stdout.write('Actuator backward...\r\n')
+                sys.stdout.flush()
+                actuator.backward()
+                while True:
+                    ready, _, _ = select.select([sys.stdin], [], [], 0.05)
+                    if ready:
+                        break
+                actuator.stop()
+
+            elif key == 'a':
+                sys.stdout.write('\r' + ' ' * 40 + '\r')
+                sys.stdout.write('Motor backward...\r\n')
+                sys.stdout.flush()
+                motor.backward()
+                while True:
+                    ready, _, _ = select.select([sys.stdin], [], [], 0.05)
+                    if ready:
+                        break
+                motor.stop()
+
+            elif key == 'd':
+                sys.stdout.write('\r' + ' ' * 40 + '\r')
+                sys.stdout.write('Motor forward...\r\n')
+                sys.stdout.flush()
+                motor.forward()
+                while True:
+                    ready, _, _ = select.select([sys.stdin], [], [], 0.05)
+                    if ready:
+                        break
+                motor.stop()
+
+            elif key == 'q':
+                actuator.stop()
+                motor.stop()
+                sys.stdout.write('\r' + ' ' * 40 + '\r')
+                sys.stdout.write('Exiting setup.\r\n')
+                sys.stdout.flush()
+                break
+
+            else:
+                # Any other key stops everything
+                actuator.stop()
+                motor.stop()
+
+    finally:
+        # Restore terminal settings no matter what
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+
+    print("Setup complete. Motors in starting position.") 
 def time_step(i):
     # Create NEW threads every time the function is called
     thread1 = threading.Thread(target=actuator_step, args=(i,))
@@ -54,6 +135,7 @@ def time_step(i):
     
     thread1.join()
     thread2.join()
+    time.sleep(0.1)
 
 for row in table:
     for element in row:
