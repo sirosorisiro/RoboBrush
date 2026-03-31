@@ -6,7 +6,7 @@ motor = Motor(forward=12, backward=20)
 actuator = Motor(forward=6, backward=5)
 import calc
 
-C = 1.0
+C = 10
 length = 0.0
 angle = 0.0
 length_l = 0.0
