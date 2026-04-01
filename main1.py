@@ -1,8 +1,10 @@
-from gpiozero import Motor
+from gpiozero import Motor, Button
 import time
 import threading
 import select
-
+start = Button(1)
+stop = Button(1)
+manual = Button(1)
 motor = Motor(forward=12, backward=20)
 actuator = Motor(forward=6, backward=5)
 import calc
@@ -140,15 +142,19 @@ def time_step(i):
 def brush_movement():
     for i in range(19):
         time_step(i+1)
-
+def stop_brushing():
+    continue
+stop.when_pressed = stop_brushing
 for row in table:
     for element in row:
         print(element, end=" ")
     print()
 try:
-    print("Setup")
-    setup()
-    for i in range(19):
-        time_step(i+1)
+    while (True):
+        input("Press key")
+        print("Setup")
+        setup()
+        for i in range(19):
+            time_step(i+1)
 except KeyboardInterrupt:
     print("Ending program")
