@@ -14,16 +14,7 @@ length_l = 0.0
 angle_l = 0.0
 table = [[0 for _ in range(4)] for _ in range(20)]
 
-for i in range(20):
-    buf = calc.calculate(i/20)
-    length_l = length
-    angle_l = angle
-    length = buf["delta"]
-    angle = buf["theta1"]
-    table[i][0] = length
-    table[i][1] = angle
-    table[i][2] = length - length_l
-    table[i][3] = angle - angle_l
+
 
 def actuator_step(i):
     if table[i][2] > 0:
@@ -49,6 +40,16 @@ def setup():
     import sys
     import tty
     import termios
+    for i in range(20):
+        buf = calc.calculate(i/20)
+        length_l = length
+        angle_l = angle
+        length = buf["delta"]
+        angle = buf["theta1"]
+        table[i][0] = length
+        table[i][1] = angle
+        table[i][2] = length - length_l
+        table[i][3] = angle - angle_l
     old_settings = termios.tcgetattr(sys.stdin)
 
     try:
@@ -135,6 +136,10 @@ def time_step(i):
     thread1.join()
     thread2.join()
     time.sleep(0.5)
+
+def brush_movement():
+    for i in range(19):
+        time_step(i+1)
 
 for row in table:
     for element in row:
