@@ -10,12 +10,9 @@ actuator = Motor(forward=6, backward=5)
 import calc
 k = 2/7
 C = 5
-length = 0.0
-angle = 0.0
-length_l = 0.0
-angle_l = 0.0
-table = [[0 for _ in range(4)] for _ in range(20)]
 
+manual_mode = False
+stopped = false
 
 
 def actuator_step(i):
@@ -141,20 +138,40 @@ def time_step(i):
 
 def brush_movement():
     for i in range(19):
+        if stop:
+            return
         time_step(i+1)
+
 def stop_brushing():
-    continue
+    stop = True
+    print("Stopping..")
+
+def toggle_manual():
+    manual = !manual
+    print(("Manual mode (press start each brush)" if manual else "Automatic mode"))
+
 stop.when_pressed = stop_brushing
-for row in table:
-    for element in row:
-        print(element, end=" ")
-    print()
-try:
+manual.when_pressed = toggle_manual
+def main():
     while (True):
-        input("Press key")
+        start.wait_for_press()
         print("Setup")
         setup()
-        for i in range(19):
-            time_step(i+1)
+        input("continue?")
+        while (stop == False):
+            brush_movement()
+            if (manual):
+                print("press start")
+                while (!start.is_pressed && !stop):
+                    time.sleep(0.5)
+            if (stop):
+                break
+            setup()
+        print("Done!")
+for row in table:
+    for element in row:
+    print()
+try:
+    
 except KeyboardInterrupt:
     print("Ending program")
