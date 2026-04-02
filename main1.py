@@ -15,9 +15,9 @@ stopped = False
 #hardware
 motor = Motor(forward=12, backward=20)
 actuator = Motor(forward=6, backward=5)
-start = Button(1)
-stop = Button(2)
-manual = Button(3)
+start = Button(2)
+stop = Button(3)
+manual = Button(4)
 
 def stop_brushing():
     stopped = True
