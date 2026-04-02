@@ -1,19 +1,10 @@
 import math
-ALPHA   = 100        # α
-BETA    = 75         # β
-GAMMA   = 110        # γ
-C       = 0.504      # c  (radians)
-EPSILON = 15         # ε
-R       = 15         # r
 
-T1 = 0.2383
-length = 0.0
-angle = 0.0
-length_l = 0.0
-angle_l = 0.0
-table = [[0 for _ in range(4)] for _ in range(20)]
-def init_lookup_table():
-    
+ALPHA   = 100        # height of 1st axle
+BETA    = 75        # dist between axles 
+GAMMA   = 110        # horizontal length from 2nd axle to actuator 
+C       = 0.504        # angle at 2nd axle
+EPSILON = 15        # distance from lin-act to center axis
 
 def curve_point(t: float) -> tuple[float, float]:
     x = 1.0 / (0.15 * t + 0.023) + 185.0
@@ -57,19 +48,7 @@ def phi(eps: float, delta: float) -> float:
 
 # ── Main function ──────────────────────────────────────────────────────────────
 def calculate(t: float) -> dict:
-    """
-    Given parameter t, compute δ (delta) and θ₁ (theta1) plus all
-    intermediate and derived quantities.
-
-    Returns a dictionary with every named value so callers can inspect
-    intermediate results if needed.
-    """
-
-    # Moving point P at parameter t
     px, py = curve_point(t)
-
-    # ── u ─────────────────────────────────────────────────────────────────────
-    # u = −β·cos(c) + sqrt( Px² + Py² − (β·sin(c) − ε)² )
     discriminant = px**2 + py**2 - (BETA * math.sin(C) - EPSILON) ** 2
     if discriminant < 0:
         raise ValueError(
@@ -77,28 +56,13 @@ def calculate(t: float) -> dict:
             "point P is outside the reachable workspace."
         )
     u = -BETA * math.cos(C) + math.sqrt(discriminant)
-
-    # ── δ (delta) ─────────────────────────────────────────────────────────────
-    # δ = u − γ
     delta = u - GAMMA
-
-    # ── f, g intermediate values ──────────────────────────────────────────────
-    # f = β + u·cos(c) − ε·sin(c)
-    # g = u·sin(c) + ε·cos(c)
     f = BETA + u * math.cos(C) - EPSILON * math.sin(C)
     g = u * math.sin(C) + EPSILON * math.cos(C)
-
-    # ── θ₁ (theta1) ───────────────────────────────────────────────────────────
-    # θ₁ = Arctan2( f·Px − g·Py ,  f·Py + g·Px )
-    #
-    # Desmos: Arctan2(x_arg, y_arg) where
-    #   x_arg = f·P.x − g·P.y
-    #   y_arg = f·P.y + g·P.x
     x_arg = f * px - g * py
     y_arg = f * py + g * px
     theta1 = arctan2_desmos(x_arg, y_arg)
 
-    # ── Derived geometry (P3, P4, P5, P6) ────────────────────────────────────
     p3x = BETA * math.cos(theta1)
     p3y = BETA * math.sin(theta1)
 
@@ -113,16 +77,12 @@ def calculate(t: float) -> dict:
     p6 = arm_endpoint(0,       -40)
 
     return {
-        # Primary outputs
         "delta":  delta,
         "theta1": theta1,
-        # Moving input point
         "P":  (px, py),
-        # Intermediate scalars
         "u": u,
         "f": f,
         "g": g,
-        # Geometry
         "P1": (0, -ALPHA),
         "P2": (0,  0),
         "P3": (p3x, p3y),
@@ -131,20 +91,20 @@ def calculate(t: float) -> dict:
         "P6": p6,
     }
 
+length = 0.0
+angle = 0.0
+length_last = 0.0
+angle_last = 0.0
+table = [[0 for j in range(4)] for i in range(20)]
 
-# ── Quick smoke-test ───────────────────────────────────────────────────────────
-if __name__ == "__main__":
-    import pprint
-
-    # Evaluate at the reference t₁ value defined in Desmos
-    result = calculate(T1)
-
-    print(f"t  = {T1}")
-    print(f"δ  (delta)  = {result['delta']:.6f}")
-    print(f"θ₁ (theta1) = {result['theta1']:.6f}  rad  "
-          f"({math.degrees(result['theta1']):.4f}°)")
-    print("\nFull result dict:")
-    pprint.pprint({k: (round(v, 6) if isinstance(v, float)
-                       else tuple(round(c, 6) for c in v) if isinstance(v, tuple)
-                       else v)
-                   for k, v in result.items()})
+def init_lookup_table():
+    for i in range(20):
+        buf = calculate(i/20)
+        length_last = length
+        angle_last = angle
+        length = buf["delta"]
+        angle = buf["theta1"]
+        table[i][0] = length
+        table[i][1] = angle
+        table[i][2] = length - length_last
+        table[i][3] = angle - angle_last
