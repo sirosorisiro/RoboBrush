@@ -110,7 +110,7 @@ def main():
             brush_movement()
             if (manual_mode):
                 print("pausing...\r")
-                while (not start.is_pressed && not stopped):
+                while (not start.is_pressed and not stopped):
                     time.sleep(0.5)
             if (stopped):
                 break
