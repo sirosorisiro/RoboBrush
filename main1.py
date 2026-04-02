@@ -1,177 +1,123 @@
+import calc
 from gpiozero import Motor, Button
+import keyboard
+import select
 import time
 import threading
-import select
+#constants
+actuator_time_scaling = 1
+motor_time_scaling = 1
+reset_motor_time = 1
+reset_actuator_time = 1
+#flags
+manual_mode = False
+stopped = False
+#hardware
+motor = Motor(forward=12, backward=20)
+actuator = Motor(forward=6, backward=5)
 start = Button(1)
 stop = Button(1)
 manual = Button(1)
-motor = Motor(forward=12, backward=20)
-actuator = Motor(forward=6, backward=5)
-import calc
-k = 2/7
-C = 5
-
-manual_mode = False
-stopped = false
-
-
-def actuator_step(i):
-    if table[i][2] > 0:
-        print("a+" + str(table[i][2]/7))
-        actuator.forward()
-    else:
-        print("a-" + str(table[i][2]/7))
-        actuator.backward()
-    time.sleep(abs(table[i][2])*k)
-    actuator.stop()
-
-def motor_step(i):                  # Fixed: added missing 'i' parameter
-    if table[i][3] > 0:
-        print("m+")
-        motor.forward()
-    else:
-        print("m-")
-        motor.backward()
-    time.sleep(abs(table[i][3]) * C)
-    motor.stop()                    # Fixed: was calling actuator.stop() by mistake
-
-def setup():
-    import sys
-    import tty
-    import termios
-    for i in range(20):
-        buf = calc.calculate(i/20)
-        length_l = length
-        angle_l = angle
-        length = buf["delta"]
-        angle = buf["theta1"]
-        table[i][0] = length
-        table[i][1] = angle
-        table[i][2] = length - length_l
-        table[i][3] = angle - angle_l
-    old_settings = termios.tcgetattr(sys.stdin)
-
-    try:
-        # Set terminal to raw mode so we can read single keypresses
-        tty.setraw(sys.stdin.fileno())
-
-        while True:
-            key = sys.stdin.read(1).lower()
-
-            if key == 'w':
-                # Move cursor up and overwrite line
-                sys.stdout.write('\r' + ' ' * 40 + '\r')
-                sys.stdout.write('Actuator forward...\r\n')
-                sys.stdout.flush()
-                actuator.forward()
-                # Wait for key release (next keypress or small delay)
-                while True:
-                    tty.setraw(sys.stdin.fileno())
-                    ready, _, _ = select.select([sys.stdin], [], [], 0.05)
-                    if ready:
-                        break
-                    # Keep running motor while held
-                actuator.stop()
-
-            elif key == 's':
-                sys.stdout.write('\r' + ' ' * 40 + '\r')
-                sys.stdout.write('Actuator backward...\r\n')
-                sys.stdout.flush()
-                actuator.backward()
-                while True:
-                    ready, _, _ = select.select([sys.stdin], [], [], 0.05)
-                    if ready:
-                        break
-                actuator.stop()
-
-            elif key == 'a':
-                sys.stdout.write('\r' + ' ' * 40 + '\r')
-                sys.stdout.write('Motor backward...\r\n')
-                sys.stdout.flush()
-                motor.backward()
-                while True:
-                    ready, _, _ = select.select([sys.stdin], [], [], 0.05)
-                    if ready:
-                        break
-                motor.stop()
-
-            elif key == 'd':
-                sys.stdout.write('\r' + ' ' * 40 + '\r')
-                sys.stdout.write('Motor forward...\r\n')
-                sys.stdout.flush()
-                motor.forward()
-                while True:
-                    ready, _, _ = select.select([sys.stdin], [], [], 0.05)
-                    if ready:
-                        break
-                motor.stop()
-
-            elif key == 'q':
-                actuator.stop()
-                motor.stop()
-                sys.stdout.write('\r' + ' ' * 40 + '\r')
-                sys.stdout.write('Exiting setup.\r\n')
-                sys.stdout.flush()
-                break
-
-            else:
-                # Any other key stops everything
-                actuator.stop()
-                motor.stop()
-
-    finally:
-        # Restore terminal settings no matter what
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-
-    print("Setup complete. Motors in starting position.") 
-def time_step(i):
-    # Create NEW threads every time the function is called
-    thread1 = threading.Thread(target=actuator_step, args=(i,))
-    thread2 = threading.Thread(target=motor_step, args=(i,))
-    
-    thread1.start()
-    thread2.start()
-    
-    thread1.join()
-    thread2.join()
-    time.sleep(0.5)
-
-def brush_movement():
-    for i in range(19):
-        if stop:
-            return
-        time_step(i+1)
 
 def stop_brushing():
-    stop = True
+    stopped = True
     print("Stopping..")
-
-def toggle_manual():
-    manual = !manual
-    print(("Manual mode (press start each brush)" if manual else "Automatic mode"))
-
+def toggle_mode():
+    manual_mode = !manual_mode
+    if manual_mode:
+        print("Switched to manual mode (press start each time)" 
+    else:
+        print("Switched to automatic mode")
 stop.when_pressed = stop_brushing
-manual.when_pressed = toggle_manual
+manual.when_pressed = toggle_mode
+
+def actuator_step(step_num):
+    d_length = calc.table[step_num][2]                    # get change in distance(mm) for current interval
+    if d_length > 0:
+        print("actuator +"+str(round(d_length),1)+"mm", end=" ")    #don't start new line at the end before motor info
+        actuator.forward()
+    else:
+        print("actuator -"+str(round(-d_length),1)+"mm", end=" ")
+        actuator.backward()
+    time.sleep(abs(d_length) * actuator_time_scaling)
+    actuator.stop()
+def motor_step(step_num):
+    d_angle = calc.table[step_num][3]                     # get change in angle(rad) for current interval
+    if d_angle > 0:
+        print("motor: +", round(d_angle,2), "rad")
+        motor.forward()
+    else:
+        print("motor: -", round(-d_angle,2), "rad")
+        motor.backward()
+    time.sleep(abs(d_angle) * motor_time_scaling)
+    motor.stop()
+def arm_step(step_num):
+    actuator_task = threading.Thread(target=actuator_step, args=[step_num])        # threading lets motors be controlled separately
+    motor_task = threading.Thread(target=motor_step, args=[step_num])
+    actuator_task.start()
+    motor_task.start()
+    actuator_task.join()
+    motor_task.join()
+    time.sleep(0.2)
+def brush_movement():
+    for step_num in range(1, 20):
+        print("Step " + str(step_num) + "/20:", end=" ")           #starts the line, "Step 1/20: actuator +1.2mm motor -0.67 rad"
+        arm_step(step_num)
+        if stopped:
+            return
+
+def reset_position():
+    print("Resetting...", end="")
+    motor.backward()
+    time.sleep(reset_motor_time)
+    actuator.backward()
+    time.sleep(reset_actuator_time)
+    print("done")
+def setup():                                                            # user controls arm to initial position
+    calc.init_lookup_table()                                            # generate table of angles and lengths from parametric curve
+    stopped = False
+    print("Control arm length with w/s, angle with a/d, use Start to begin brushing.")
+    while (True):
+        if keyboard.is_pressed('w'):
+            print("Actuator forward...", end="\r")                             #overwrite these in the same spot
+            motor.stop()
+            actuator.forward()
+        elif keyboard.is_pressed('s'):
+            print("Actuator reverse...", end="\r")
+            motor.stop()
+            actuator.backward()
+        elif keyboard.is_pressed('a'):
+            print("Motor reverse...   ", end="\r")
+            actuator.stop()
+            motor.backward()
+        elif keyboard.is_pressed('d'):
+            print("Motor forward...   ", end="\r")
+            actuator.stop()
+            motor.forward()
+        elif start.is_pressed:
+            actuator.stop()
+            motor.stop()
+            print("Setup complete.")
+            break
+        time.sleep(0.05)
+
 def main():
     while (True):
+        print("Press Start to begin setting up.")
         start.wait_for_press()
-        print("Setup")
         setup()
-        input("continue?")
-        while (stop == False):
+        while (stopped == False):
             brush_movement()
-            if (manual):
-                print("press start")
-                while (!start.is_pressed && !stop):
+            if (manual_mode):
+                print("pausing...\r")
+                while (!start.is_pressed && !stopped):
                     time.sleep(0.5)
-            if (stop):
+            if (stopped):
                 break
-            setup()
-        print("Done!")
-for row in table:
-    for element in row:
-    print()
+            reset_position()
+        print("brush buddy finished.", end=" ")                        # "brush buddy finished. press start..."
+
 try:
-    
+    main()
 except KeyboardInterrupt:
-    print("Ending program")
+    print("done")
