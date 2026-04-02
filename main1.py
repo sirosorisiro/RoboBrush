@@ -23,7 +23,7 @@ def stop_brushing():
     stopped = True
     print("Stopping..")
 def toggle_mode():
-    manual_mode = !manual_mode
+    manual_mode = not manual_mode
     if manual_mode:
         print("Switched to manual mode (press start each time)" 
     else:
@@ -110,7 +110,7 @@ def main():
             brush_movement()
             if (manual_mode):
                 print("pausing...\r")
-                while (!start.is_pressed && !stopped):
+                while (not start.is_pressed && not stopped):
                     time.sleep(0.5)
             if (stopped):
                 break
