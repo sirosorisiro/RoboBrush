@@ -7,7 +7,13 @@ EPSILON = 15         # ε
 R       = 15         # r
 
 T1 = 0.2383
-
+length = 0.0
+angle = 0.0
+length_l = 0.0
+angle_l = 0.0
+table = [[0 for _ in range(4)] for _ in range(20)]
+def init_lookup_table():
+    
 
 def curve_point(t: float) -> tuple[float, float]:
     x = 1.0 / (0.15 * t + 0.023) + 185.0
