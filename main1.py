@@ -25,7 +25,7 @@ def stop_brushing():
 def toggle_mode():
     manual_mode = not manual_mode
     if manual_mode:
-        print("Switched to manual mode (press start each time)" 
+        print("Switched to manual mode (press start each time)")
     else:
         print("Switched to automatic mode")
 stop.when_pressed = stop_brushing
