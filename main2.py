@@ -8,7 +8,7 @@ import termios
 import time
 import threading
 #constants
-actuator_time_scaling = 1
+actuator_time_scaling = 2/7
 motor_time_scaling = 1
 reset_motor_time = 1
 reset_actuator_time = 1
@@ -23,9 +23,11 @@ stop = Button(3)
 manual = Button(4)
 
 def stop_brushing():
+    global stopped
     stopped = True
     print("Stopping..")
 def toggle_mode():
+    global manual_mode
     manual_mode = not manual_mode
     if manual_mode:
         print("Switched to manual mode (press start each time)")
@@ -37,10 +39,10 @@ manual.when_pressed = toggle_mode
 def actuator_step(step_num):
     d_length = calc.table[step_num][2]                    # get change in distance(mm) for current interval
     if d_length > 0:
-        print("actuator +"+str(round(d_length),1)+"mm", end=" ")    #don't start new line at the end before motor info
+        print("actuator +"+str(round(d_length,1))+"mm", end=" ")    #don't start new line at the end before motor info
         actuator.forward()
     else:
-        print("actuator -"+str(round(-d_length),1)+"mm", end=" ")
+        print("actuator -"+str(round(-d_length,1))+"mm", end=" ")
         actuator.backward()
     time.sleep(abs(d_length) * actuator_time_scaling)
     actuator.stop()
@@ -98,7 +100,7 @@ def setup():                                                            # user c
         elif key == 'd':
             print('Motor forward...\r')
             motor.forward()
-        elif key == 'enter':
+        elif key == '\r':
             actuator.stop()
             motor.stop()
             print('Exiting setup.\r')

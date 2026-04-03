@@ -5,7 +5,7 @@ import select
 import time
 import threading
 #constants
-actuator_time_scaling = 1
+actuator_time_scaling = 2/7
 motor_time_scaling = 1
 reset_motor_time = 1
 reset_actuator_time = 1
@@ -34,10 +34,10 @@ manual.when_pressed = toggle_mode
 def actuator_step(step_num):
     d_length = calc.table[step_num][2]                    # get change in distance(mm) for current interval
     if d_length > 0:
-        print("actuator +"+str(round(d_length),1)+"mm", end=" ")    #don't start new line at the end before motor info
+        print("actuator +"+str(round(d_length,1))+"mm", end=" ")    #don't start new line at the end before motor info
         actuator.forward()
     else:
-        print("actuator -"+str(round(-d_length),1)+"mm", end=" ")
+        print("actuator -"+str(round(-d_length,1))+"mm", end=" ")
         actuator.backward()
     time.sleep(abs(d_length) * actuator_time_scaling)
     actuator.stop()

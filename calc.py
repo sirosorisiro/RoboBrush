@@ -91,13 +91,12 @@ def calculate(t: float) -> dict:
         "P6": p6,
     }
 
-length = 0.0
-angle = 0.0
-length_last = 0.0
-angle_last = 0.0
 table = [[0 for j in range(4)] for i in range(20)]
-
 def init_lookup_table():
+    length = 0.0
+    angle = 0.0
+    length_last = 0.0
+    angle_last = 0.0
     for i in range(20):
         buf = calculate(i/20)
         length_last = length
