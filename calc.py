@@ -2,12 +2,13 @@ import math
 
 ALPHA   = 100        # height of 1st axle
 BETA    = 75        # dist between axles 
-GAMMA   = 110        # horizontal length from 2nd axle to actuator 
-C       = 0.504        # angle at 2nd axle
-EPSILON = 15        # distance from lin-act to center axis
+GAMMA   = 213        # horizontal length from 2nd axle to actuator 
+C       = 1.5708        # angle at 2nd axle
+EPSILON = -60       # distance from lin-act to center axis
+divs = 20
 
 def curve_point(t: float) -> tuple[float, float]:
-    x = 1.0 / (0.15 * t + 0.023) + 185.0
+    x = 1.0 / (0.15 * t + 0.023) + 250.0
     y = 50.0 - 100.0 * t
     return x, y
 
@@ -91,14 +92,14 @@ def calculate(t: float) -> dict:
         "P6": p6,
     }
 
-table = [[0 for j in range(4)] for i in range(20)]
+table = [[0 for j in range(4)] for i in range(divs)]
 def init_lookup_table():
     length = 0.0
     angle = 0.0
     length_last = 0.0
     angle_last = 0.0
-    for i in range(20):
-        buf = calculate(i/20)
+    for i in range(divs):
+        buf = calculate(i/divs)
         length_last = length
         angle_last = angle
         length = buf["delta"]

@@ -4,21 +4,21 @@ import time
 import threading
 
 # constants
-actuator_time_scaling = 1.5 # <2 
-motor_time_scaling = 2
-reset_motor_time = 0
-reset_actuator_time = 0
+actuator_time_scaling = 0.6 # <2 
+motor_time_scaling = 5
+reset_motor_time = 1.5
+reset_actuator_time = 5
 
 # flags
-manual_mode = False
+manual_mode = True
 stopped = False
 
 motor = Motor(forward=20, backward=12)
-actuator = Motor(forward=6, backward=5)
+actuator = Motor(forward=5, backward=6)
 start = Button(2, bounce_time = 0.05)
 stop = Button(3, bounce_time = 0.05)
 mode = Button(4, bounce_time = 0.05)
-motor.value = 0.5
+motor.value = 0.2
 motor.stop()
 
 # button functions
@@ -62,17 +62,17 @@ def motor_step(step_num):
 def arm_step(step_num):
     actuator_task = threading.Thread(target=actuator_step, args=[step_num])  # the threading library lets motors be controlled on 2 separate timers
     motor_task = threading.Thread(target=motor_step, args=[step_num])
+    t = time.perf_counter()
     actuator_task.start()
     motor_task.start()
     actuator_task.join()
     motor_task.join()
-    time.sleep(0.05)
 
 
 def brush_movement():
     print()
     print("Brushing...")
-    for step_num in range(1, 20):
+    for step_num in range(1, calc.divs):
         arm_step(step_num)
         if stopped:
             return
@@ -115,11 +115,12 @@ def setup():  # user moves arm to initial position
 
 
 def reset_position():
-    motor.backward()
+    motor.forward()
     stop.wait_for_press(timeout=reset_motor_time)
-    actuator.backward()
+    motor.stop()
+    actuator.forward()
     stop.wait_for_press(timeout=reset_actuator_time)
-
+    actuator.stop()
 
 def main():
     global stopped, stop, mode
