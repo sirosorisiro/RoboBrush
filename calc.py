@@ -5,7 +5,7 @@ BETA    = 75        # dist between axles
 GAMMA   = 213        # horizontal length from 2nd axle to actuator 
 C       = 1.5708        # angle at 2nd axle
 EPSILON = -60       # distance from lin-act to center axis
-divs = 20
+divs = 50
 
 def curve_point(t: float) -> tuple[float, float]:
     x = 1.0 / (0.15 * t + 0.023) + 250.0
