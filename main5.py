@@ -53,7 +53,7 @@ def motor_step(step_num):
     if d_angle > 0:
         motor.forward(speed=motor.value)
     else:
-        motor.backward(speed=motor.valuespeed=motor.value)
+        motor.backward(speed=motor.value)
     time.sleep(abs(d_angle) * motor_time_scaling)
 
 def arm_step(step_num):
