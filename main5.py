@@ -18,8 +18,7 @@ actuator = Motor(forward=5, backward=6)
 start = Button(2, bounce_time = 0.05)
 stop = Button(3, bounce_time = 0.05)
 mode = Button(4, bounce_time = 0.05)
-motor.value = 0.05
-motor.stop()
+motor.value = 0.65
 
 # button functions
 def stop_brushing():
@@ -52,9 +51,9 @@ def motor_step(step_num):
     d_angle = calc.table[step_num][3]  # get change in angle for current interval
     print("(%+.2f)rad" % d_angle, end="\r")  # format into "...-0.34rad", write over the same line for less clutter
     if d_angle > 0:
-        motor.forward()
+        motor.forward(speed=motor.value)
     else:
-        motor.backward()
+        motor.backward(speed=motor.valuespeed=motor.value)
     time.sleep(abs(d_angle) * motor_time_scaling)
 
 def arm_step(step_num):
@@ -86,10 +85,10 @@ def setup():  # user moves arm to initial position
         time.sleep(0.1)
         if mode.is_pressed:
             print("Raising...", end="\r")
-            motor.forward()
+            motor.forward(speed=motor.value)
         elif stop.is_pressed:
             print("Lowering...", end="\r")
-            motor.backward()
+            motor.backward(speed=motor.value)
         else:
             motor.stop()
             actuator.stop()
@@ -113,7 +112,7 @@ def setup():  # user moves arm to initial position
 
 
 def reset_position():
-    motor.forward()
+    motor.forward(speed=motor.value)
     stop.wait_for_press(timeout=reset_motor_time)
     motor.stop()
     actuator.forward()
