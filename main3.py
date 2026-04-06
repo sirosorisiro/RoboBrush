@@ -18,8 +18,6 @@ actuator = Motor(forward=5, backward=6)
 start = Button(2, bounce_time = 0.05)
 stop = Button(3, bounce_time = 0.05)
 mode = Button(4, bounce_time = 0.05)
-motor.value = 0.2
-motor.stop()
 
 # button functions
 def stop_brushing():
