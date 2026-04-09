@@ -38,7 +38,6 @@ def toggle_mode():
 
 
 def actuator_thread(step_events, done_event):
-    """Runs for the entire brush movement loop, handling all actuator steps."""
     for step_num in range(1, calc.divs):
         step_events[step_num].wait()  # wait for sync signal to start this step
         if stopped:
@@ -58,8 +57,6 @@ def actuator_thread(step_events, done_event):
 
 
 def motor_thread(step_events, done_event):
-    """Runs for the entire brush movement loop, handling all motor steps.
-    Motor value is scaled by the magnitude of d_angle instead of sleeping proportionally."""
     # Find the maximum absolute d_angle across all steps for normalization
     max_d_angle = max(abs(calc.table[s][3]) for s in range(1, calc.divs))
     if max_d_angle == 0:
@@ -115,9 +112,7 @@ def brush_movement():
             for s in range(step_num, calc.divs):
                 step_events[s].set()
             break
-        # Signal both threads to start this step
         step_events[step_num].set()
-        # Wait for both to finish this step before moving to the next
         actuator_done[step_num].wait()
         motor_done[step_num].wait()
 
