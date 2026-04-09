@@ -1,30 +1,22 @@
 import math
+# the functions in this file translate a curve in cartesian space into an array of motor angle and length values
+# https://www.desmos.com/calculator/70u4imysat
 
 ALPHA   = 100        # height of 1st axle
 BETA    = 75        # dist between axles 
 GAMMA   = 213        # horizontal length from 2nd axle to actuator 
 C       = 1.5708        # angle at 2nd axle
 EPSILON = -60       # distance from lin-act to center axis
-divs = 50
 
-def curve_point(t: float) -> tuple[float, float]:
+def curve_point(t: float) -> tuple[float, float]: # r
     x = 1.0 / (0.15 * t + 0.023) + 250.0
     y = 50.0 - 100.0 * t
     return x, y
 
+divs = 50        # approximate curve with this many straight lines
+
 def arctan2_desmos(x: float, y: float) -> float:
-    """
-    Desmos definition (note argument order is Arctan2(x, y), i.e. x is the
-    'condition' variable and y is the numerator of the fraction y/x):
-
-        Arctan2(x, y) =
-            arctan(y/x)       if x >= 0
-            arctan(y/x) + π   if x < 0  AND  x·y <= 0   [2nd/4th quadrant cross]
-            arctan(y/x) − π   if x < 0
-
-    This is equivalent to Python's math.atan2(y, x) in all standard cases,
-    but we replicate the Desmos piecewise form exactly.
-    """
+    #helper for calculations, https://en.wikipedia.org/wiki/Atan2
     if x >= 0:
         return math.atan(y / x) if x != 0 else (math.pi / 2 if y > 0 else -math.pi / 2)
     elif x * y <= 0:          # x < 0 and xy <= 0
@@ -32,30 +24,18 @@ def arctan2_desmos(x: float, y: float) -> float:
     else:                     # x < 0 and xy > 0
         return math.atan(y / x) - math.pi
 
-def d_diag(eps: float, delta: float) -> float:
-    """
-    d_diag(ε, δ) = sqrt( (γ + δ)² + ε² )
-    """
+def diag_len(eps: float, delta: float) -> float:
     return math.sqrt((GAMMA + delta) ** 2 + eps ** 2)
 
 
-# ── Helper: phi angle ─────────────────────────────────────────────────────────
+# fixed second angle of arm 
 def phi(eps: float, delta: float) -> float:
-    """
-    φ(ε, δ) = arctan( ε / (γ + δ) ) + c
-    """
     return math.atan(eps / (GAMMA + delta)) + C
 
 
-# ── Main function ──────────────────────────────────────────────────────────────
 def calculate(t: float) -> dict:
     px, py = curve_point(t)
     discriminant = px**2 + py**2 - (BETA * math.sin(C) - EPSILON) ** 2
-    if discriminant < 0:
-        raise ValueError(
-            f"Negative discriminant ({discriminant:.6f}) at t={t}: "
-            "point P is outside the reachable workspace."
-        )
     u = -BETA * math.cos(C) + math.sqrt(discriminant)
     delta = u - GAMMA
     f = BETA + u * math.cos(C) - EPSILON * math.sin(C)
@@ -68,9 +48,8 @@ def calculate(t: float) -> dict:
     p3y = BETA * math.sin(theta1)
 
     def arm_endpoint(eps, d):
-        """P3 + d_diag(eps,d) · (cos(θ₁ − φ(eps,d)), sin(θ₁ − φ(eps,d)))"""
         angle = theta1 - phi(eps, d)
-        dist  = d_diag(eps, d)
+        dist  = diag_len(eps, d)
         return p3x + dist * math.cos(angle), p3y + dist * math.sin(angle)
 
     p4 = arm_endpoint(EPSILON,  0)
@@ -78,12 +57,9 @@ def calculate(t: float) -> dict:
     p6 = arm_endpoint(0,       -40)
 
     return {
-        "delta":  delta,
-        "theta1": theta1,
-        "P":  (px, py),
-        "u": u,
-        "f": f,
-        "g": g,
+        "delta":  delta, # actuator length
+        "theta1": theta1, # angle
+        "P":  (px, py),   # these points sketch out the device assembly
         "P1": (0, -ALPHA),
         "P2": (0,  0),
         "P3": (p3x, p3y),
