@@ -1,0 +1,8 @@
+This folder contains software for the Brush Buddy (DP4).
+The final prototype runs 'main_final' and requires 'calc'.
+Summary of development timeline:
+  c. March 23 : testing GPIO (gpiotest.py)
+  c. March 30 : worked out math in Desmos, wrote calc.py
+  c. March 31 : added motor control (motortest.py)
+  c. April 2 : added threading (main.py)
+  Apr. 2 - 6 : tweaked constants, output format, interface loop (main2,-3,-4.py)
